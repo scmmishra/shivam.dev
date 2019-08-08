@@ -118,6 +118,7 @@ query Post ($path: String!) {
       max-width: none;
     }
 
+    svg ~ em,
     img ~ em {
       font-style: italic;
       text-align: center;

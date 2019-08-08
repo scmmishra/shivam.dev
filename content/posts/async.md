@@ -13,8 +13,47 @@ description: "JavaScript is designed for the web, that means it's supposed to be
 
 In _synchronous_ programs, if you have two lines of code (L1 followed by L2), then L2 cannot begin running until L1 has finished executing. While as in _asynchronous_ programs, you can have two lines of code (L1 followed by L2), where L1 schedules some task to be run in the future, but L2 runs before that task completes. This is not to be confused with a multithreaded execution. JavaScript utilizes as single thread for execution.
 
-![](./images/async/control-io.svg)
-*Asynchronous execution. Source: [https://eloquentjavascript.net](https://eloquentjavascript.net/)*
+<p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 445 210" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;">
+    <g transform="matrix(0.82193,0,0,0.82193,39.6205,18.8462)">
+        <g transform="matrix(1,0,0,1,2,16)">
+            <text x="0px" y="0px" style="font-family:'PTMono-Regular', 'PT Mono', monospace;font-size:16px;" fill="#718096">synchronous, single thread of control</text>
+        </g>
+        <path d="M2.5,42.5L22.5,42.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M22,42L182,42" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <circle cx="22" cy="42" r="5" fill="#718096"/>
+        <path d="M182.5,42.5L202.5,42.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M202,42L402,42" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <circle cx="202" cy="42" r="5" fill="#718096"/>
+        <path d="M402.5,42.5L442.5,42.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <g transform="matrix(1,0,0,1,2,73)">
+            <text x="0px" y="0px" style="font-family:'PTMono-Regular', 'PT Mono', monospace;font-size:16px;" fill="#718096">synchronous, two threads of control</text>
+        </g>
+        <path d="M2.5,97.5L22.5,97.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M22,97L182,97" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <circle cx="22" cy="97" r="5" fill="#718096"/>
+        <path d="M222.5,97.5L262.5,97.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M2.5,122.5L22.5,122.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M22,122L222,122" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <circle cx="22" cy="122" r="5" fill="#718096"/>
+        <path d="M222.5,122.5L242.5,122.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <g transform="matrix(1,0,0,1,2,153)">
+            <text x="0px" y="0px" style="font-family:'PTMono-Regular', 'PT Mono', monospace;font-size:16px;" fill="#718096">asynchronous</text>
+        </g>
+        <path d="M22,177C22,193.458 35.542,207 52,207L134,207C150.458,207 164,193.458 164,177" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <path d="M42,177C42,185.229 48.771,192 57,192L209,192C217.229,192 224,185.229 224,177" style="fill:none;fill-rule:nonzero;stroke:rgb(204,34,34);stroke-width:2px;"/>
+        <path d="M2.5,177.5L62.5,177.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <circle cx="22" cy="177" r="5" fill="#718096"/>
+        <circle cx="42" cy="177" r="5" fill="#718096"/>
+        <path d="M162.5,177.5L182.5,177.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+        <path d="M222.5,177.5L262.5,177.5" style="fill:none;fill-rule:nonzero;stroke:rgb(68,68,255);stroke-width:5px;"/>
+    </g>
+</svg>
+<em>Asynchronous execution. Source: <a href="https://eloquentjavascript.net">https://eloquentjavascript.net</a></em>
+</p>
+
 
 The `setTimeout` function is probably the simplest way to asynchronously schedule code to run in the future:
 
