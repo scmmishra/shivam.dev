@@ -6,9 +6,11 @@ https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javasc
  * @author Lea Verou
  */
 
+ @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400,600&display=swap');
+
 pre {
   padding: calc(var(--space) / 2);
-  font-size: .85em;
+  font-size: .8em;
   background-color: var(--bg-code);
   margin-bottom: 2em;
   border: 1px solid var(--border-color);
@@ -17,14 +19,14 @@ pre {
 
 code {
   background-color: var(--bg-code);
-  border: 1px solid var(--border-color);
+//   border: 1px solid var(--border-color);
   font-size: .85em;
   padding: .2em .5em;
 }
 
 code[class*="language-"],
 pre[class*="language-"] {
-	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	font-family: 'IBM Plex Mono', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 	text-align: left;
 	white-space: pre;
 	word-spacing: normal;
