@@ -1,6 +1,6 @@
 {
     "name": "Shivam Mishra",
-    "alias": "shivam.dev", // or ["aliasOne", "aliasTwo"]
+    "alias": "shivam.dev",
     "version": 0.1,
     "builds": [
       {
