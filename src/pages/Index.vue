@@ -48,7 +48,7 @@ export default {
     PostCard
   },
   metaInfo: {
-    title: 'Shivam Mishra'
+    title: 'Home'
   }
 }
 </script>
