@@ -1,142 +1,208 @@
 ---
-title: Over Explained - JavaScript and V8
+title: JavaScript - Async and Promises
 date: 2019-07-17
 published: true
 tags: ['JavaScript']
 canonical_url: false
-description: "JavaScript needs a runtime, this is provided by JS Engine. It's the part of your browser that takes the JS code and executes it. Each popular browser has it's own implementation of a runtime. A JavaScript engine is a kind of process virtual machine that is designed specifically to interpret and execute JavaScript code. Chrome's V8 is one of the most popular ones, it powers the Node environment and is considered to be the one fastest JS Engines yet."
+description: "JavaScript is designed for the web, that means it's supposed to be asynchronous. This means, you can have two lines of code (L1 followed by L2), where L1 schedules some task to be run in the future, but L2 runs before that task completes."
 ---
 
-# What you must know about JavaScript
+[The World's Most Misunderstood Programming Language](http://crockford.com/javascript/), JavaScript has a lot of real awesome engineering under the hood. It's the language of the World Wide Web in it's own right. JavaScript is designed for the web, that means it's supposed to be asynchronous, often this is what creates confusion among most people trying to learn the language for the first time.
 
-Twenty years ago JavaScript was just another [Turing-complete](https://stackoverflow.com/questions/7284/what-is-turing-complete) language that was used to create annoying pop-ups and maybe some fancy animations, but today this has largely changed. JavaScript has found it's place in servers, mobile applications, desktop applications and obviously your browser. One such awesome project is [FrappeJS](https://github.com/frappe/frappejs) which is a Node + Electron + Vue based framework inspired by [Frappe](https://github.com/frappe/frappe).
+## But what the heck is Asynchronous?
 
-JavaScript is unlike any other programming language, the single most important difference is that JavaScript is a single-threaded language. Other things to know about it is that it is a non-blocking, asynchronous and concurrent object oriented scripting language. Much of what JavaScript is, is made possibly by its just in time compiler (that means it is an interpreted language) and the fact that it's prototype based rather than class based.
+In _synchronous_ programs, if you have two lines of code (L1 followed by L2), then L2 cannot begin running until L1 has finished executing. While as in _asynchronous_ programs, you can have two lines of code (L1 followed by L2), where L1 schedules some task to be run in the future, but L2 runs before that task completes. This is not to be confused with a multithreaded execution. JavaScript utilizes as single thread for execution.
 
-## Prototype Based Programming
+![](./images/async/control-io.svg)
+*Asynchronous execution. Source: [https://eloquentjavascript.net](https://eloquentjavascript.net/)*
 
-Prototype-based programming is a style of object-oriented programming in which classes are not explicitly defined, but rather derived by adding properties and methods to an instance of another class or, less frequently, adding them to an empty object. To understand this better we must see the contrast between Prototype based languages and Class based languages
+The `setTimeout` function is probably the simplest way to asynchronously schedule code to run in the future:
 
-Object oriented languages like C++ are founded on two concepts viz. `Classes` and `Instances`
+```javascript
+// Say Hello.
+console.log(Hello.);
+// Say Goodbye two seconds from now.
+setTimeout(function() {
+		console.log(Googbye!);
+}, 2000);
+// Say Hello again!
+console.log(Hello again!);
+```
 
-*   A class is an abstract representation of an object. It is like a template that defines the behaviour as well as the properties of an object.
-*   An instance is an instantiation or a member of a class. It is an object in memory.
+If you are only familiar with synchronous code, you might expect the code above to behave in the following way:
 
-For JavaScript there is no such distinction, it uses a _prototypical object_, an object used as a template from which gives us the initial properties for a new object. Any object can specify its own properties either when we create it or even at runtime. In JS nearly all objects in JavaScript are instances of [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object), a typical object inherits properties (including methods) from `Object.prototype`. This allows the creation of an object without first defining its class.
+*   Say Hello.
+*   Do nothing for two seconds.
+*   Say Goodbye!
+*   Say Hello again!
 
-In addition, any object can be associated as the _prototype_ for another object, allowing the second object to share the first object's properties, this also means that if you add a property to an object that is used as the prototype for a set of objects, the objects for which it is the prototype also get the new property.
+But `setTimeout` does not pause the execution of the code. It only schedules something to happen in the future, and then immediately continues to the next line.
 
-# The Engine
+*   Say Hello.
+*   Say Hello again!
+*   Do nothing for two seconds.
+*   Say Goodbye!
 
-JavaScript needs a runtime, this is provided by JS Engine. It's the part of your browser that takes the JS code and executes it. Each popular browser has it's own implementation of a runtime.
+### Why we need Async?
 
-*   Chrome has [V8](https://v8.dev/)
-*   FireFox has [Spidermonkey](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey)
-*   Edge has [Chakra](https://github.com/Microsoft/ChakraCore)
-*   Safari has [JavaScriptCore](https://trac.webkit.org/wiki/JavaScriptCore)
+An asynchronous nature is requisite because of the environment JavaScript is built to work in and the kind of interactions it is used to accomplish. When building real-world applications, you are going to need to access resources or interact with applications on the outside, for instance look at the following code.
+```javascript
+// CoursePage.vue
+mounted() {
+	this.getCourseDetails().then(data => this.course = data);
+	this.getTopics().then(data => this.topicData = data);
+},
+methods: {
+	getCourseDetails() {
+		return lms.call('get_course_details', {
+			course_name: this.courseName
+		});
+	},
+	getTopics() {
+		return lms.call('get_course_topics', {
+			course_name: this.courseName
+		});
+	}
+}
+```
+From a project I've been working on, it is a [Vue](https://vuejs.org) component that makes two API calls using the `lms.call()` function. Both `getCourseDetails()` and `getTopics()` is supposed to execute once the component is mounted. Now each of these make an HTTP request to an API endpoint that performs certain operations and returns some data. The thing about these operations is that **they take time**; there’s always a delay between the start of the operation and the response. And for JavaScript, this presents a very fundamental problem.
 
-A JavaScript engine is a kind of process virtual machine (much like [wine](https://www.winehq.org/)) that is designed specifically to interpret and execute JavaScript code. Chrome's V8 is one of the most popular ones, it powers the Node environment ([read more](https://codability.in/an-introduction-to-node-js/)) and is considered to be the one fastest JS Engines yet.
+Since JavaScript is single threaded, the browser can’t interrupt a running script, Even if the script is just waiting for the server to complete a certain task, the browser will simply be stuck, it can't even render any UI, listen to any interactions.
 
-Generally speaking, executing JavaScript requires the following steps
+You can even simulate this nature in your browser right now. [Open the JS Console in your browser](https://webmasters.stackexchange.com/a/77337) and type in the following code:
 
-1.  Parsing the code to generate AST
-2.  Compiling the parsed code (usually done by a baseline and an optimising compiler)
+```javascript
+function wait(ms) {
+	let waitUntil = Date.now() + ms
+	while (Date.now() < waitUntil) { continue }
+}
+```
+Now all you have to do is call this function. Typing in `wait(10000)` will freeze your browser for 10 seconds. Trying selecting a text or clicking any link during that time. Even closing the tab won't work until 10 seconds are up. For this reason JavaScript cannot multitask if it were to be synchronous. This is the reason why JavaScript **has** to be asynchronous.
 
-Most of what you will read next is in context to V8, however it is not very different for the other engines.
+### Understanding Callbacks
 
-# Parsing JavaScript
+Callbacks are functions which are sent as an argument to another function and are invoked when a certain event like a HTTP response happens. It's essentially a stub or a piece of code that you’ll pass to the function say `setTimeout()` that the browser will store until needed. Then when an event of interest occurs, such as a timeout or HTTP response, the browser can handle it by executing the stored callback function. Again here it is important to understand thatwhen you initiate an operation like a timeout or a request, the browser does not wait for it to continue, the script just keeps on executing. The callback is executed only **after** the original script has fully executed. The following is probably the simplest example of a callback:
 
-![Parser](./images/v8/Parser.png)
-*Parser*
+```javascript
+function greeting(name) {
+		alert('Hello ' + name);
+}
+function processUserInput(callback) {
+		var name = prompt('Please enter your name. ');
+	callback(name);
+}
+processUserInput(greeting);
+```
 
-The first step in executing JavaScript code is parsing the code, the parser generates data structures, AST and Scope. AST or abstract syntax tree is a tree representation of the syntactic structure of the JavaScript code, Scope is another data structure that maintains variable proxies which in turn helps manage scope and reference of variables within functions. Parsing directly affects the JavaScript start-up performance. This matters as it can delay how soon users can interact with our site.
+Real world usage of callbacks can actually result in some pretty bad looking code, often referred to as callback hell, and if you have been a JS developer for a while you might have heard the phrase _callback hell_ before. [callbackhell.com](http://callbackhell.com) is probably the best site to look if you wanna understand callback hell.
 
-Broadly speaking parsing involves two steps lexical analysis and syntax analysis. Lexical analysis involves reading a stream of characters from our code and combine them into tokens, it also involves removal of white space characters, comments, etc. In the end, the entire string of code will be split into a list of tokens. Syntax analyser, also called parser, will take a plain list of tokens after lexical analysis and turn it into a tree representation, and also validates the language syntax.
+![](./images/async/callback-hell.png)
 
-The following is the result of both operations for a simple function.
+Callback-based code inevitably ends with developers having to write pretty much unreadable and even unmaintainable code to some extent. And until promises arrived on the scene, complex callbacks were required to do _anything_ useful with JavaScript.
 
-![AST](./images/v8/AST.png)
-*AST for a simple square function. Built using https://astexplorer.net/*
+## Introducing Promises
 
-V8 had two separate parsers (currently only one, explained later) with slightly different purposes, they are _Parser_ and _PreParser_, Parser is the full eager one which is responsible for building the AST and scopes as well as finding syntax errors. The PreParser is the lazy one, and obviously the faster one _(Twice as fast ⚡️)_. This is required because a lot of web pages ship a lot of code they don't execute. PreParser does not build an AST, even though it builds scopes but it doesn't put a lot of references or declarations in it. It basically skips over the functions we don't wish to compile right now. How does it know that? There are a few simple rules, all top level code, [Immediately Invoked Function Expressions (IIFEs)](http://adripofjavascript.com/blog/drips/an-introduction-to-iffes-immediately-invoked-function-expressions.html) or any functions recognised as IIFEs are eager executed, other top level functions that are not IIFEs are skipped over, and noted by PreParser, and are eager parsed later when the function is called.
+A Promise is an object that represents the completion, either success or failure of an asynchronous operation as well as its resulting value. The way we use promises is that instead of passing callbacks into a function, a promise is a returned object to which you attach callbacks.
 
-> You can add an exclamation mark before a function to inform the parser that you want to eager parse it.
+Unlike old-style, _passed-in_ callbacks, a promise comes with some guarantees:
 
-Now that we have an AST and the scope ready, it's turn for the interpreter to take over, V8 has _Ignition_ that generates bytecode from the syntax tree.
+*   Callbacks will never be called before the [completion of the current run](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop#Run-to-completion) of the JavaScript event loop.
+*   Callbacks added with [`then()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) even _after_ the success or failure of the asynchronous operation, will be called, as above.
+*   Multiple callbacks may be added by calling [`then()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) several times. Each callback is executed one after another, in the order in which they were inserted.
 
-# Generating ByteCode
+One of the great things about using promises is **chaining**. This allows us to write code that executes in the order you'd expect. Semantically this is much more readable and maintainable.
 
-JavaScript engines need to be fast, so to do this these engines employ [just-in-time (JIT) compilation](https://en.wikipedia.org/wiki/Just-in-time_compilation). This compiles the script to native machine code immediately prior to execution. Generally speaking code is initially compiled by a baseline compiler, which can generate non-optimized machine code quickly. The compiled code is analysed during runtime and optionally re-compiled dynamically with a more advanced optimising compiler for peak performance. _Ignition_ is that baseline compiler, only in this case, it's actually an interpreter. It replaced the older _full-codegen._
+The following two examples can help you understand the apparent difference between them.
 
-> Ignition is a register machine or a stack machine with an [accumulator register,](https://en.wikipedia.org/wiki/Accumulator_(computing)) that generates and interprets bytecode using the AST provided by the parser. Bytecode is an abstraction of machine code.
+```javascript
+// With traditional passed-in Callbacks
 
-Previously when a script loads in your browser and the engine decides to parse and compile it, first thing that it needs to do is run the top level code of the script, so for this the _full-codegen_ compiles that block of code and it tries to do it as fast as it can. Obviously the lazy parsing tries to reduce the amount of the work it had to do by letting it skip through the code that need not be compiled right away, but the lazy stub is still waiting to be parsed by the Parser and compiled when it's called, so we effectively parse the function twice, once by the lazy parser and secondly when it's called. That's just partly the problem.
+doSomething(function(result) {
+	doSomethingElse(result ,function(newResult) {
+		doFinalStep(newResult, function(finalResult) {
+			console.log('Got the final result: ' + finalResult);
+		}, failureCallback);
+	}, failureCallback);
+}, failureCallback);
 
-Now consider the following code
 
-![example.js](./images/v8/examplejs.png)
+// With Promises
+doSomething()
+	.then((result) => { return doSomethingElse(newResult) })
+	.then((newResult) => { return doFinalStep(newResult) })
+	.then((finalResult) => { console.log('Got the final result: ' + finalResult) })
+	.catch(failureCallback)
+```
 
-Here both `var Student = function()` and `Person.prototype.doWork =` _`function`_`()` is lazy parsed initially and when the class is instantiated and `doWork` is called the function body is parsed and compiled. But the function `doWork` has a loop, so it parses the function again, produces a optimised version for it and then switches to using that optimised version, this is called [on stack replacement](https://stackoverflow.com/a/9105846). But we can't do away with the old unoptimised code because of the way JavaScript works. Because let's say, the programmer decides to [monkey patch](https://www.sitepoint.com/pragmatic-monkey-patching/) a few things it will reflect on the AST and since AST is the ultimate source of truth, v8 will have to jump back to the unoptimised code. The issues with this approach (in addition to architectural complexity) is that the JITed machine code can consume a significant amount of memory, even if the code is only executed once. Ignition was created as an improvement to this. Ignition is a bytecode interpreter for v8\.
+Promises give you the performance benefits of asynchronous code, without the loss of clarity.
 
-Using an interpreter very easily solves a portion of the memory problem, since the footprint of the interpreted bytecode is quite less as compared to the machine code. Also this small footprint means there is less parsing overhead which allows use to parse the entire script in an eager fashion. **No need for a PreParser! Yayyy!**
+### Writing Promises
 
-This also reduces the complexity, since the AST generated is for the entire of the script and not just pieces of it, the bytecode generated from this AST can be considered as the source of truth.
+The syntax for a Promise is simple: `new Promise(executor);`. The `executor` is a function that is passed with the arguments `resolve` and `reject`.
 
-![ssa](./images/v8/Ignition.png)
-*Ignition, the interpreter, generates bytecode from syntax tree*
+```javascript
+API.call = function(args) {
+	return new Promise((resolve, reject) => {
+		return axios.create({...args}).then(response => {
+			if (response.ok) {
+				resolve(response)
+			} else {
+				reject(new Error('error'))
+			}
+		});
+	});
+};
+```
 
-Ignition enables run-once or non-hot code to be stored more compactly in bytecode form. Since the bytecode is smaller, compilation time is much reduced, and we will also be able to be more eager about initial compilation, which significantly improve startup time. An added advantage is that the bytecode can be fed into a Turbofan graph generator directly, thereby avoiding the need to reparse the JavaScript source code when optimising a function in TurboFan. Explained Next!
+> P.S. There's a better way to write that function
 
-Learn more about ByteCode in this [blog](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775) by [Franziska Hinkelmann](https://twitter.com/fhinkel).
+### The Async-Await syntax
 
-# TurboFan
+The other way of creating promises is the `async-await` syntax. Without explicitly writing promises. `async/await` is arguably a more elegant way of writing asynchronous code, giving it a more synchronous feel semantically. Using async and await you can implicitly create promises and handle them as well.
 
-During interpretation of the generated bytecode, Ignition collects _profiling information_ or _feedback_ about the inputs to certain operations. Some of this feedback is used by Ignition itself to speed up subsequent interpretation of the bytecode. But predominantly this feedback collected is consumed by the _TurboFan JavaScript compiler_ to generate highly-optimised machine code. Turbofan implements a certain technique called _Speculative Optimisation_ and is inspired by a concept call a _Sea of Nodes._
+Here's the syntax for it
 
-## Sea of Nodes
+```javascript
+async function name([param[, param[, ... param]]]) {
+	statements
+}
+```
+Let's look at the following example
 
-All computations are expressed as nodes in the sea of nodes and the edges represent dependencies between computations. This approach allows better performing JIT complied code. Sea of Nodes is based on _[SSA](https://en.wikipedia.org/wiki/Static_single_assignment_form)_ or _[Single Static Assignment](https://en.wikipedia.org/wiki/Static_single_assignment_form)_. This is a way of structuring the intermediate representation of a code block/program so that every variable is assigned exactly once. This is useful is [redundancy elimination](https://en.wikipedia.org/wiki/Partial_redundancy_elimination)_._
+```javascript
+// Using classic Promise Syntax
+getData(args) {
+	return asyncFunction(args)
+		.then(result => doSomething(result))
+		.then(nextResult => doSomethingElse(nextResult))
+		.catch(err => {
+				console.error('fetch error', err);
+		})
+}
+```
 
-> Some common ways of redundancy elimination are value numbering, conditional constant propagation, common-subexpression elimination (CSE), partial-redundancy elimination. Each come with their own suite of benefits as well as problems.
+```javascript
+// Using aync-await
+async getData(args) {
+	try {
+		const result = await asyncFunction(args);
+		const nextResult = await doSomething(result);
+		const await doSomethingElse(nextResult);
+	}
+	catch (err) {
+		console.error('fetch error', err);
+	}
+}
+```
 
-Static single-assignment form represents [use-def](https://en.wikipedia.org/wiki/Use-define_chain) information explicitly and arranges for every value computed by a program to have a unique assignment/definition. A method is in SSA form if every variable has (statically) exactly one definition.
+As you can see `async-await` provides a much nicer syntax in more complex scenarios with loops or certain other constructs like `try-catch`.
 
-![ssa](./images/v8/ssa.png)
+There are many benefits to this new scheme.
 
-So for a Sea of Nodes, each SSA data value is represented as a node in a graph. A node produces a value. (eg, Add 3 + 6). A node points to its operands (the constants 3 and 6). There is no other extra data
+1.  **Cleaner error stacks.**
+2.  **Better debugging.** Breakpoints can very well be written inside the `.then` block, but on stepping over, the debugger will not move to the next `.then` because it only “steps” through synchronous code.
+3.  **Code sanity.** You can handle both asynchronous and synchronous errors with the same construct, good old `try/catch`. This can help reduce duplication as well as improve code readability.
 
-![3](./images/v8/3.png)
-*Node Representation for 3 + 6*
+If you want to learn how this works under the hood, I highly recommend watching this [talk](https://vimeo.com/254947206) by [Jake Archibald](https://jakearchibald.com/) at SmashingConf and maybe also read this [article at MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop).
 
-In a sea of Nodes, Nodes express computation they can be constants, parameters, arithmetic, load, store or even calls. Edges express dependencies. This benefits largely by reducing redundancy. Nodes not reachable from end are _dead_. This can including dead controls, dead effects, dead computation, etc. Because of this dead code never placed in final schedule, when compiling. This allows TurboFan to leave out a lot of cases that it doesn’t need to handle, which is extremely important to execute JavaScript at peak performance. This form of representation also isolates parsing of this graph from error-prone ordering of computations.
-
-If you want to learn about Sea of Nodes in detail, here is a wonderful [blog](https://darksi.de/d.sea-of-nodes/) by [Fedor Indutny](https://github.com/indutny).
-
-## Speculative Optimisation
-
-Consider the following code:
-
-![fi](./images/v8/carbon.png)
-
-He we know that in the case of `x+y`, both `x` and `y` are numbers, we don’t need to handle the cases where either of them is a string, or arbitrary JavaScript objects.
-
-Since JavaScript is dynamically typed, there is no way to know the exact types of values until runtime. Therefore we need to speculate, based on previously collected feedback about the values we’ve seen so far, and then assume that we’re going to always see similar values in the future. This might sound fairly limited, but it has proven to work well for dynamic languages like JavaScript.
-
-In this particular case, we collect information about the input operands and the resulting value of the + operation (the `Add` bytecode). When we optimize this code with TurboFan and we’ve seen only numbers so far, we put checks in place to check that both `x` and `y` are numbers (in that case we know that the result is going to be a number as well). If either of these checks fail we go back to interpreting the bytecode instead — a process called _Deoptimization_. Thus TurboFan doesn’t need to worry about all these other cases of the `+` operator and doesn’t even need to emit machine code to handle those, but can focus on the case for numbers, which translates well to machine instructions.
-
-If you want to learn about Speculative Optimisation in detail, here is a wonderful [blog](https://ponyfoo.com/articles/an-introduction-to-speculative-optimization-in-v8) by [Benedikt Meurer](https://twitter.com/bmeurer)
-
-# The Execution Pipeline
-
-This diagram gives a simplified (over-simplified) representation of the complete JS Execution pipeline. There is much more to be read beyond the things explained here. Be sure to follow the [v8 team](https://v8.dev/blog) to learn more about the project and how it all works.
-
-<figure class="\&quot;kg-card" kg-image-card="" kg-width-wide="">
-
-![V8](./images/v8/V8.png)
-*How V8 executes JavaScript*
-
-# Concluding
-
-This is the first part of the Over Explained series, future blogs will cover garbage collection, an important part in making JavaScript faster on your devices, JS Event loop and other things.
-
-P.S. Most developers need not worry about choosing the best algorithms and data structures, and instead can focus on the application design. You can admire the engineering though.
+Learning about asynchronous programming is probably the first step in mastering JavaScript, and this article covered pretty much all you need to get started. More about JavaScript in future blogs.
