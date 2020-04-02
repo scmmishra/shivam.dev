@@ -8,7 +8,7 @@
 		</h1>
 
 		<p class="author__intro">
-			A simple, hackable & minimalistic starter for Gridsome that uses Markdown for content.
+			Maintainer for Frappe & Frappe Charts. Building great OSS at Frappe Technologies
 		</p>
 
 		<p class="author__links">

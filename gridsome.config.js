@@ -5,8 +5,8 @@
 // To restart press CTRL + C in terminal and run `gridsome develop`
 
 module.exports = {
-  siteName: 'Gridsome Blog Starter',
-  siteDescription: 'A simple, hackable & minimalistic starter for Gridsome that uses Markdown for content.',
+  siteName: 'Shivam Mishra',
+  siteDescription: 'Maintainer for Frappe & Frappe Charts. Building great OSS at Frappe Technologies',
 
   templates: {
     Post: '/:title',
