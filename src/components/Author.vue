@@ -13,7 +13,7 @@
 
 		<p class="author__links">
 			<a href="//twitter.com/scmmishra">Follow on Twitter</a>
-			<a href="//github.com/github">GitHub</a>
+			<a href="//github.com/scmmishra">GitHub</a>
 		</p>
 
 	</div>
