@@ -29,19 +29,7 @@ module.exports = {
           },
         },
       },
-    },
-    {
-      use: "gridsome-plugin-fathom",
-      options: {
-        siteId: "PNSYY",
-        // usefal if you're running a self-hosted fathom instance
-        trackerUrl: "https://stats.shivam.dev/tracker.js",
-        // declare this to ensure your tracking only occurs on a single host
-        host: "shivam.dev",
-        // set to true for local debugging; defaults to false
-        debug: false,
-      },
-    },
+    }
   ],
 
   transformers: {
